@@ -1,0 +1,17 @@
+"AddonInfo"
+{
+    // Internal name of the addon
+    "addonname"        "hide_and_heap"
+
+    // Display name shown in the Arcade
+    "displayname"      "Hide & Heap"
+
+    // Entry script for your gamemode
+    "vscripts"         "addon_game_mode"
+
+    // Optional: load timers.lua automatically
+    "scripts"
+    {
+        "vscripts"    "timers"
+    }
+}

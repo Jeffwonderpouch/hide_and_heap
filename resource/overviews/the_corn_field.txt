@@ -1,0 +1,8 @@
+the_corn_field
+{
+	material materials/overviews/the_corn_field.vmat
+	pos_x -6144
+	pos_y 6144
+	scale 12.000
+}
+
