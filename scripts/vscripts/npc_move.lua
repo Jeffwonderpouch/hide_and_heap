@@ -42,7 +42,7 @@ function RandomCharMovement(npc_entity)
         current_position = current_position:__add(Vector(x_random_distance_change, 0, 0))
         current_position = current_position:__add(Vector(0, y_random_distance_change, 0))
         final_location = current_position
-        print("New location ", final_location)
+        -- print("New location ", final_location)
         npc_entity:MoveToPosition(final_location)
         return 1
     end)
@@ -50,12 +50,17 @@ end
 
 function RandomCharMovementWithAggro(npc_entity) 
     local final_location = nil
-    local isAggrod = nil
+    local wasAggrod = nil
     local aggroTarget = nil 
     Timers:CreateTimer(function()
         local current_position = npc_entity:GetOrigin()
-        if current_position ~= final_location and final_location ~= nil and GridNav:CanFindPath(current_position, final_location) then 
-            print(GridNav:CanFindPath(current_position, final_location))
+        local hasAggro = npc_entity:GetAggroTarget()
+        if hasAggro ~= nil then
+            wasAggrod = true
+            return 1
+        end
+        if current_position ~= final_location and final_location ~= nil and GridNav:CanFindPath(current_position, final_location) and wasAggrod == false then 
+            -- print(GridNav:CanFindPath(current_position, final_location))
             -- print("Continuing travel to ", final_location,"from", current_position)
             npc_entity:MoveToPosition(final_location)
             return 1

@@ -4,8 +4,10 @@ if HideAndHeap == nil then
     _G.HideAndHeap = class({})
 end
 
-require("timers")
+require("libraries/timers")
 require("game_setup")
+require("settings")
+require("npc_move")
 
 -----------------------------------------------------
 -- Precache
@@ -49,17 +51,19 @@ end
 -- Hero Initialization -- LEVELS, GOLD, ITEMS, ETC
 -----------------------------------------------------
 function HideAndHeap:InitializeHero(hero)
-    if not IsValidEntity(hero) or not hero:IsRealHero() then return end
+
+    if not IsValidEntity(hero) then return end
     if hero._hideAndHeapInit then return end
     hero._hideAndHeapInit = true
 
     local playerID = hero:GetPlayerOwnerID()
     local team = hero:GetTeamNumber()
-    if playerID == nil or playerID < 0 then return end
 
     if team == DOTA_TEAM_GOODGUYS then -- CM Levels, Gold, & Items
         LevelHeroTo(hero, 5)
-        PlayerResource:SetGold(playerID, 69, false)
+        if playerID ~= nil then
+            PlayerResource:SetGold(playerID, 69, false)
+        end
         GiveItemSafe(hero, "item_boots_of_bearing")
         GiveItemSafe(hero, "item_ward_observer")
         GiveItemSafe(hero, "item_ward_sentry")
@@ -70,8 +74,10 @@ function HideAndHeap:InitializeHero(hero)
         GiveItemSafe(hero, "item_aghanims_shard")
         GiveItemSafe(hero, "item_ultimate_scepter_2")
     elseif team == DOTA_TEAM_BADGUYS then -- Pudge Levels, Gold, & Items
-        LevelHeroTo(hero, 20)
-        PlayerResource:SetGold(playerID, 420, false)
+        LevelHeroTo(hero, 15)
+        if playerID ~= nil then
+            PlayerResource:SetGold(playerID, 420, false)
+        end
 		GiveItemSafe(hero, "item_rod_of_atos")
 		GiveItemSafe(hero, "item_aether_lens")
         GiveItemSafe(hero, "item_octarine_core")
@@ -84,6 +90,14 @@ function HideAndHeap:InitializeHero(hero)
         pcall(function() GiveItemSafe(hero, "item_spider_legs") end)
         GiveItemSafe(hero, "item_aghanims_shard")
         GiveItemSafe(hero, "item_ultimate_scepter_2")
+        for i = 0, 4 do
+            local ability = hero:GetAbilityByIndex(i)
+            for _ = 1, 4 do
+                if ability:CanAbilityBeUpgraded() then 
+                    hero:UpgradeAbility(ability)
+                end
+            end
+        end
     end
 end
 
@@ -151,21 +165,30 @@ function HideAndHeap:InitGameMode()
 end
 
 ----------------------------------------------------- 
--- OnGameStateChange -> Swap heroes & start round
+-- OnGameStateChange -> Fill bots + swap heroes
 -----------------------------------------------------
 function HideAndHeap:OnGameStateChange()
+    HideAndHeap.NPC_PUDGE = {}
+    HideAndHeap.NPC_CM = {}
     local state = GameRules:State_Get()
     print("[HIDEANDHEAP] State Changed:", state)
 
+    if state == DOTA_GAMERULES_STATE_GAME_IN_PROGRESS then
+    end
+
+    local pudgecount = 0
     -- Step 1: Setup heroes when map loads
     if state == DOTA_GAMERULES_STATE_PRE_GAME then
         print("[HIDEANDHEAP] Waiting for map to load - preparing pudge hero swaps")
 
         for playerID = 0, DOTA_MAX_TEAM_PLAYERS - 1 do
             if PlayerResource:IsValidPlayerID(playerID) then
+                -- local hero = PlayerResource:GetSelectedHeroEntity(playerID)
+                -- hero.SetDayTimeVisionRange(1800)
                 local team = PlayerResource:GetTeam(playerID)
 
                 if team == DOTA_TEAM_BADGUYS then
+                    pudgecount = pudgecount + 1
                     PrecacheUnitByNameAsync("npc_dota_hero_pudge", function()
                         local ok, newHero = pcall(function()
                             return PlayerResource:ReplaceHeroWith(playerID, "npc_dota_hero_pudge", 0, 0)
@@ -182,8 +205,22 @@ function HideAndHeap:OnGameStateChange()
                         end
                     end, playerID)
                 end
+            else
+                local bot_cm = CreateUnitByName("npc_dota_hero_crystal_maiden", GenerateRandomUnitLocation(3000), true, nil, nil, DOTA_TEAM_GOODGUYS)
+                table.insert(HideAndHeap.NPC_CM, bot_cm)
+                HideAndHeap:InitializeHero(bot_cm)
+                RandomCharMovement(bot_cm)
             end
         end
+        if pudgecount < 2 then
+            local count = 2 - pudgecount
+            for num = 1, count do
+                local pudge = CreateUnitByName("npc_dota_hero_pudge", Vector(0,0,0), true, nil, nil, DOTA_TEAM_BADGUYS)
+                HideAndHeap:InitializeHero(pudge)
+                table.insert(HideAndHeap.NPC_PUDGE, pudge)
+                print("Pudge char", pudge, "nubmer", num)
+            end 
+        end     
     end
 
     -- Step 1.5 -- TIMED MESSAGES
@@ -207,6 +244,10 @@ function HideAndHeap:OnGameStateChange()
         HideAndHeap:StartItemSpawner() -- startup the item spawner script
         self:StartRound()
         local roundTime = 300
+       for i, pudge in pairs(HideAndHeap.NPC_PUDGE) do
+            print("Pudge no ", i, "attributes", pudge) 
+            RandomCharMovement(pudge)
+        end
         -- Minute countdown message
         for i = roundTime, 1, -60 do
             Timers:CreateTimer(roundTime - i, function()
@@ -259,7 +300,7 @@ ListenToGameEvent("entity_killed", function(event)
         attacker:SetBaseMoveSpeed(baseMS + attacker._movespeedBonus)
 
         -- Get current model scale
-        local currentScale = killer:GetModelScale()
+        local currentScale = attacker:GetModelScale()
         -- Increase scale by a small amount
         local newScale = currentScale + 0.1 -- adjust growth per kill
 
