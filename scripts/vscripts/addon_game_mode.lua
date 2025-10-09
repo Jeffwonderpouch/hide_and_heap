@@ -70,7 +70,7 @@ function HideAndHeap:InitializeHero(hero)
         GiveItemSafe(hero, "item_aghanims_shard")
         GiveItemSafe(hero, "item_ultimate_scepter_2")
     elseif team == DOTA_TEAM_BADGUYS then -- Pudge Levels, Gold, & Items
-        LevelHeroTo(hero, 15)
+        LevelHeroTo(hero, 20)
         PlayerResource:SetGold(playerID, 420, false)
 		GiveItemSafe(hero, "item_rod_of_atos")
 		GiveItemSafe(hero, "item_aether_lens")
@@ -343,7 +343,7 @@ function HideAndHeap:SpawnRandomItems()
         "item_silver_edge",
         "item_solar_crest",
         "item_sphere",
-        "item_travel_boots",
+        "item_travel_boots_2",
         "item_vanguard",
         "item_vladmir",
         "item_yasha",
@@ -366,4 +366,3 @@ function HideAndHeap:SpawnRandomItems()
         end
     end
 end
-
