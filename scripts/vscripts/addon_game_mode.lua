@@ -158,7 +158,7 @@ function HideAndHeap:OnGameStateChange()
     print("[HIDEANDHEAP] State Changed:", state)
 
     -- Step 1: Setup heroes when map loads
-    if state == DOTA_GAMERULES_STATE_WAIT_FOR_MAP_TO_LOAD then
+    if state == DOTA_GAMERULES_STATE_PRE_GAME then
         print("[HIDEANDHEAP] Waiting for map to load - preparing pudge hero swaps")
 
         for playerID = 0, DOTA_MAX_TEAM_PLAYERS - 1 do
@@ -329,7 +329,6 @@ function HideAndHeap:SpawnRandomItems()
         "item_glimmer_cape",
         "item_heart",
         "item_helm_of_the_dominator",
-        "item_hurricane_pike",
         "item_invis_sword",
         "item_lotus_orb",
         "item_manta",
@@ -347,7 +346,11 @@ function HideAndHeap:SpawnRandomItems()
         "item_vanguard",
         "item_vladmir",
         "item_yasha",
-        "item_shivas_guard"
+        "item_sange",
+        "item_kaya",
+        "item_shivas_guard",
+        "item_iron_branch",
+        "item_blood_grenade"
     }
 
 
