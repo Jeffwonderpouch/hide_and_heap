@@ -68,7 +68,6 @@ function HideAndHeap:InitializeHero(hero)
         GiveItemSafe(hero, "item_quelling_blade")
         pcall(function() GiveItemSafe(hero, "item_pogo_stick") end)
         GiveItemSafe(hero, "item_aghanims_shard")
-        GiveItemSafe(hero, "item_ultimate_scepter_2")
     elseif team == DOTA_TEAM_BADGUYS then -- Pudge Levels, Gold, & Items
         LevelHeroTo(hero, 20)
         PlayerResource:SetGold(playerID, 420, false)
@@ -83,7 +82,6 @@ function HideAndHeap:InitializeHero(hero)
         pcall(function() GiveItemSafe(hero, "item_blood_grenade") end)
         pcall(function() GiveItemSafe(hero, "item_spider_legs") end)
         GiveItemSafe(hero, "item_aghanims_shard")
-        GiveItemSafe(hero, "item_ultimate_scepter_2")
     end
 end
 
@@ -158,7 +156,7 @@ function HideAndHeap:OnGameStateChange()
     print("[HIDEANDHEAP] State Changed:", state)
 
     -- Step 1: Setup heroes when map loads
-    if state == DOTA_GAMERULES_STATE_PRE_GAME then
+    if state == DOTA_GAMERULES_STATE_WAIT_FOR_MAP_TO_LOAD then
         print("[HIDEANDHEAP] Waiting for map to load - preparing pudge hero swaps")
 
         for playerID = 0, DOTA_MAX_TEAM_PLAYERS - 1 do
@@ -172,7 +170,7 @@ function HideAndHeap:OnGameStateChange()
                         end)
 
                         if ok and newHero then
-                            newHero:SetModelScale(1.1)
+                            newHero:SetModelScale(1.2)
                             print("[HIDEANDHEAP] Replaced Dire player " .. playerID .. " with Pudge")
                             local hideDuration = 20 --SAME AS DURATION (down below, step 1.5)
                             print("[HideAndHeap] Pregame started — locking Dire for " .. hideDuration .. " seconds")
@@ -326,6 +324,7 @@ function HideAndHeap:SpawnRandomItems()
         "item_ethereal_blade",
         "item_force_staff",
         "item_gem",
+        "item_ultimate_scepter_2",
         "item_glimmer_cape",
         "item_heart",
         "item_helm_of_the_dominator",
@@ -350,7 +349,8 @@ function HideAndHeap:SpawnRandomItems()
         "item_kaya",
         "item_shivas_guard",
         "item_iron_branch",
-        "item_blood_grenade"
+        "item_blood_grenade",
+        "item_ultimate_scepter"
     }
 
 
