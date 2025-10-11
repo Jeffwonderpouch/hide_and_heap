@@ -19,7 +19,7 @@ function HideAndHeap:StartRound() -- START ROUND FUNCTION
             ---------------------------------------------------------- 
             -- Delay activating the round logic until after hide phase
             ----------------------------------------------------------
-            Timers:CreateTimer(20, function()
+            Timers:CreateTimer(17, function()
                 self.roundActive = true
 
                 -- Start monitoring the clock once per second
@@ -100,8 +100,12 @@ function HideAndHeap:EndRound(result) -- END OF ROUND FUNCTION
 
     -- Announce winner in chat
     GameRules:SendCustomMessage(victoryText, 0, 0)
-    GameRules:SetSafeToLeave(true)
-    GameRules:SetGameWinner(winningTeam)
-    GameRules:SetCustomVictoryMessage(victoryText)
-    GameRules:SetCustomVictoryMessageDuration(10)
+
+    -- Delay slightly so message prints before end
+    Timers:CreateTimer(2.0, function()
+        GameRules:SetSafeToLeave(true)
+        GameRules:SetGameWinner(winningTeam)
+        GameRules:SetCustomVictoryMessage(victoryText)
+        GameRules:SetCustomVictoryMessageDuration(10)
+    end)
 end
