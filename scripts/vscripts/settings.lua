@@ -1,40 +1,29 @@
-
+-- GAME CONFIGURATIONS
 CUSTOM_GAME_SETUP_TIME = 1.0      -- How long should custom game setup last - the screen where players pick a team?
 STRATEGY_TIME = 0.0               -- How long should strategy time last? Bug: You can buy items during strategy time and it will not be spent!
 SHOWCASE_TIME = 0.0               -- How long should show case time be?
-DEV_MODE = 1
+DEV_MODE = 0
 REQUIRED_PUDGE_COUNT = 2
-REQUIRED_CM_COUNT = 10
+REQUIRED_CM_COUNT = 15
+HIDE_DURATION = 20
+MAX_ALLOWED = DOTA_MAX_TEAM_PLAYERS
+LOBBY_WAIT_TIME = 20
 
--- iirc the 2 zeros are talent related 
-PUDGE_ABILITIES = {4, 4, 4, 0, 0, 3}
-function SetPudgeAbilities(hero)
-    for index, level in ipairs(PUDGE_ABILITIES) do
-        local ability = hero:GetAbilityByIndex(index-1)
-        DebugPrint("ability ", ability:GetName())
-        for _ = 0, level-1 do
-            if ability:CanAbilityBeUpgraded() then
-                hero:UpgradeAbility(ability)
-            end
-        end
-    end
-end
+PUDGE_INIT_SIZE_SCALE = 1.2
+PUDGE_KILL_SIZE_SCALING = 0.1
+PUDGE_KILL_VISION_BONUS = 200
+PUDGE_KILL_MOVE_SPEED_BONUS = 25
+PUDGE_STARTING_LEVEL = 20
+PUDGE_STARTING_GOLD = 420
 
-function GetAbility(hero, index)
-    local ability = hero:GetAbilityByIndex(index)
-    return ability
-end
+CM_STARTING_LEVEL = 5
+CM_STARTING_GOLD = 69
+CM_STARTING_DISTANCE_FROM_CENTER = 3000
+
+ROUND_TIME = 300 -- seconds
+AUTO_FILL_TEAMS = true
 
 
-CM_ABILITIES = {1, 1, 1}
-function SetCMAbilities(hero)
-    for index, level in ipairs(CM_ABILITIES) do
-        local ability = hero:GetAbilityByIndex(index-1)
-        DebugPrint("ability ", ability:GetName())
-        for _ = 0, level-1 do
-            if ability:CanAbilityBeUpgraded() then
-                hero:UpgradeAbility(ability)
-            end
-        end
-    end
-end
+-- DEV MODE
+DEV_MODE_CM_VISION = 4000
+
