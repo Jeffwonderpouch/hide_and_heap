@@ -30,68 +30,6 @@ function Activate()
 end
 
 -----------------------------------------------------
--- Helpers
------------------------------------------------------
-local function LevelHeroTo(hero, targetLevel)
-    if not IsValidEntity(hero) then return end
-    local current = hero:GetLevel() or 0
-    if targetLevel <= current then return end
-    for i = 1, (targetLevel - current) do
-        hero:HeroLevelUp(false)
-    end
-end
-
-local function GiveItemSafe(hero, itemName)
-    if not IsValidEntity(hero) then return false end
-    local ok, err = pcall(function() hero:AddItemByName(itemName) end)
-    if not ok then
-        print("[HIDEANDHEAP] GiveItemSafe failed for item:", itemName, "err:", err)
-        return false
-    end
-    return true
-end
-
------------------------------------------------------
--- Hero Initialization -- LEVELS, GOLD, ITEMS, ETC
------------------------------------------------------
-function HideAndHeap:InitializeHero(hero)
-    if not IsValidEntity(hero) or not hero:IsRealHero() then return end
-    if hero._hideAndHeapInit then return end
-    hero._hideAndHeapInit = true
-
-    local playerID = hero:GetPlayerOwnerID()
-    local team = hero:GetTeamNumber()
-    if playerID == nil or playerID < 0 then return end
-
-    if team == DOTA_TEAM_GOODGUYS then -- CM Levels, Gold, & Items
-        LevelHeroTo(hero, 5)
-        PlayerResource:SetGold(playerID, 69, false)
-        GiveItemSafe(hero, "item_boots_of_bearing")
-        GiveItemSafe(hero, "item_ward_observer")
-        GiveItemSafe(hero, "item_ward_sentry")
-        GiveItemSafe(hero, "item_wind_lace")
-        GiveItemSafe(hero, "item_hurricane_pike")
-        GiveItemSafe(hero, "item_quelling_blade")
-        pcall(function() GiveItemSafe(hero, "item_pogo_stick") end)
-        GiveItemSafe(hero, "item_aghanims_shard")
-    elseif team == DOTA_TEAM_BADGUYS then -- Pudge Levels, Gold, & Items
-        LevelHeroTo(hero, 20)
-        PlayerResource:SetGold(playerID, 420, false)
-		GiveItemSafe(hero, "item_rod_of_atos")
-		GiveItemSafe(hero, "item_aether_lens")
-        GiveItemSafe(hero, "item_octarine_core")
-        GiveItemSafe(hero, "item_ward_observer")
-        GiveItemSafe(hero, "item_ward_observer")
-        GiveItemSafe(hero, "item_ward_sentry")
-		GiveItemSafe(hero, "item_travel_boots")
-        pcall(function() GiveItemSafe(hero, "item_blood_grenade") end)
-        pcall(function() GiveItemSafe(hero, "item_blood_grenade") end)
-        pcall(function() GiveItemSafe(hero, "item_spider_legs") end)
-        GiveItemSafe(hero, "item_aghanims_shard")
-    end
-end
-
------------------------------------------------------
 -- Init Game Mode
 -----------------------------------------------------
 function HideAndHeap:InitGameMode()
@@ -101,12 +39,12 @@ function HideAndHeap:InitGameMode()
 
     GameRules:EnableCustomGameSetupAutoLaunch(true)
     GameRules:SetCustomGameSetupAutoLaunchDelay(LOBBY_WAIT_TIME)
-    GameRules:SetCustomGameSetupRemainingTime(30)
-    GameRules:SetCustomGameSetupTimeout(30)
+    GameRules:SetCustomGameSetupRemainingTime(LOBBY_WAIT_TIME)
+    GameRules:SetCustomGameSetupTimeout(LOBBY_WAIT_TIME)
 
     -- Team caps
-	GameRules:SetCustomGameTeamMaxPlayers(DOTA_TEAM_GOODGUYS, 8)
-    GameRules:SetCustomGameTeamMaxPlayers(DOTA_TEAM_BADGUYS, 2)
+	GameRules:SetCustomGameTeamMaxPlayers(DOTA_TEAM_GOODGUYS, REQUIRED_CM_COUNT)
+    GameRules:SetCustomGameTeamMaxPlayers(DOTA_TEAM_BADGUYS, REQUIRED_PUDGE_COUNT)
     GameRules:SetCustomGameTeamMaxPlayers(DOTA_TEAM_CUSTOM_1, 0)
     GameRules:SetCustomGameTeamMaxPlayers(DOTA_TEAM_CUSTOM_2, 0)
     GameRules:SetCustomGameTeamMaxPlayers(DOTA_TEAM_CUSTOM_3, 0)
@@ -116,7 +54,7 @@ function HideAndHeap:InitGameMode()
     GameRules:SetHeroSelectionTime(0)
     GameRules:SetStrategyTime(0)
     GameRules:SetShowcaseTime(0)
-    GameRules:SetPreGameTime(0)
+    GameRules:SetPreGameTime(PRE_GAME_TIME)
 
     -- SCANS
     mode:SetCustomScanCooldown(30)
@@ -126,10 +64,11 @@ function HideAndHeap:InitGameMode()
     GameRules:SetHeroRespawnEnabled(false)
     GameRules:GetGameModeEntity():SetFixedRespawnTime(-1)
     mode:SetBuybackEnabled(false)
+
     -- 💰 Set global gold rules
-    GameRules:SetStartingGold(69)   -- gives 69 base gold to everyone
-    GameRules:SetGoldPerTick(69)     -- 69 gold per tick
-    GameRules:SetGoldTickTime(60) -- gold ticks every minute
+    GameRules:SetStartingGold(DEFAULT_STARTING_GOLD)  
+    GameRules:SetGoldPerTick(GOLD_PER_TICK)   
+    GameRules:SetGoldTickTime(TICK_DURATION) 
 
     -- Force-pick CM for everyone initially
     mode:SetCustomGameForceHero("npc_dota_hero_crystal_maiden")
@@ -141,7 +80,7 @@ function HideAndHeap:InitGameMode()
     ListenToGameEvent("npc_spawned", function(event)
         local entIndex = event and (event.entindex or event.entindex_ent or event.entindex_entindex)
         if not entIndex then return end
-        Timers:CreateTimer(0.05, function()
+        Timers:CreateTimer(0.1, function()
             local unit = EntIndexToHScript(tonumber(entIndex))
             if unit and IsValidEntity(unit) and unit:IsRealHero() then
                 local ok, err = pcall(function() InitializeHero(unit) end)
@@ -164,16 +103,19 @@ function HideAndHeap:OnGameStateChange()
 
     local pudge_count = 0
     local cm_count = 0
+
     -- Step 1: Setup heroes when map loads
     if state == DOTA_GAMERULES_STATE_WAIT_FOR_MAP_TO_LOAD then
-        print("[HIDEANDHEAP] Waiting for map to load - preparing pudge hero swaps")
+        print("[HIDEANDHEAP] Waiting for map to load - preparing hero swaps")
 
-        -- for playerID = 0, DOTA_MAX_TEAM_PLAYERS - 1 do
         for playerID = 0, REQUIRED_CM_COUNT + REQUIRED_PUDGE_COUNT - 1 do
             if PlayerResource:IsValidPlayerID(playerID) then
                 local team = PlayerResource:GetTeam(playerID)
+
                 if team == DOTA_TEAM_BADGUYS then
                     pudge_count = pudge_count + 1
+
+                    -- Replace player hero asynchronously
                     PrecacheUnitByNameAsync("npc_dota_hero_pudge", function()
                         local ok, newHero = pcall(function()
                             return PlayerResource:ReplaceHeroWith(playerID, "npc_dota_hero_pudge", 0, 0)
@@ -182,18 +124,21 @@ function HideAndHeap:OnGameStateChange()
                         if ok and newHero then
                             newHero:SetModelScale(PUDGE_INIT_SIZE_SCALE)
                             print("[HIDEANDHEAP] Replaced Dire player " .. playerID .. " with Pudge")
+                            -- Lock Dire heroes immediately
+                            HideAndHeap:LockDireDuringPregame(PUDGE_INIT_STUN_DURATION)
                             print("[HideAndHeap] Pregame started — locking Dire for " .. HIDE_DURATION .. " seconds")
-                            HideAndHeap:LockDireDuringPregame(HIDE_DURATION)
                         else
                             print("[HIDEANDHEAP] ReplaceHeroWith failed for Dire player", playerID)
                         end
                     end, playerID)
+
                 else
                     cm_count = cm_count + 1
                 end
+
             else
                 if cm_count < REQUIRED_CM_COUNT and AUTO_FILL_TEAMS then
-                    local cm = CreateUnitByName("npc_dota_hero_crystal_maiden", GenerateRandomUnitLocation(3000), true, nil, nil, DOTA_TEAM_GOODGUYS)
+                    local cm = CreateUnitByName("npc_dota_hero_crystal_maiden", GenerateRandomUnitLocation(CM_STARTING_DISTANCE_FROM_CENTER), true, nil, nil, DOTA_TEAM_GOODGUYS)
                     table.insert(HideAndHeap.NPC_CM, cm)
                     ApplyCMThinker(cm)
                 end
@@ -209,28 +154,11 @@ function HideAndHeap:OnGameStateChange()
         end
     end
 
-    -- Step 1.5 -- TIMED MESSAGES
-    if state== DOTA_GAMERULES_STATE_PRE_GAME then
-        local duration = HIDE_DURATION
-        GameRules:SendCustomMessage("Crystal Maidens, run and hide now!", 0, 0)
-                -- Pudge countdown message
-        for i = duration, 1, -5 do
-            Timers:CreateTimer(duration - i, function()
-                GameRules:SendCustomMessage("Pudges free to move in " .. i .. " seconds!", 0, 0)
-            end)
-        end
-        -- PUDGES ARE RELEASED!
-        Timers:CreateTimer(duration, function()
-            GameRules:SendCustomMessage("Pudges are released! Time to hunt!", 0, 0)
-        end)
-    end
-
-    -- Step 2: Once the game actually begins, start the round
+    -- Step 2: Start the round when the game begins
     if state == DOTA_GAMERULES_STATE_GAME_IN_PROGRESS then
-        HideAndHeap:StartItemSpawner() -- startup the item spawner script
         self:StartRound()
         local roundTime = ROUND_TIME
-        -- Minute countdown message
+
         for i = roundTime, 1, -60 do
             Timers:CreateTimer(roundTime - i, function()
                 GameRules:SendCustomMessage("The round has " .. math.floor(i / 60) .. " minutes left!", 0, 0)
@@ -239,15 +167,16 @@ function HideAndHeap:OnGameStateChange()
     end
 end
 
+
 ---------------------------------------------------------
 -- LOCK DIRE DURING PREGAME (HIDE PHASE)
 ---------------------------------------------------------
-function HideAndHeap:LockDireDuringPregame(duration)
-    print("Locking Dire players for " .. duration .. " seconds")
+function HideAndHeap:LockDireDuringPregame(HIDE_DURATION)
+    print("Locking Dire players for " .. HIDE_DURATION .. " seconds")
 
     for _, hero in pairs(HeroList:GetAllHeroes()) do
         if hero:IsRealHero() and hero:GetTeamNumber() == DOTA_TEAM_BADGUYS then
-            hero:AddNewModifier(hero, nil, "modifier_stunned", { duration = duration })
+            hero:AddNewModifier(hero, nil, "modifier_stunned", { duration = HIDE_DURATION })
         end
     end
 end
@@ -265,8 +194,8 @@ ListenToGameEvent("entity_killed", function(event)
     ---------------------------------------------------------
     if attacker and attacker:IsRealHero() and attacker:GetUnitName() == "npc_dota_hero_pudge" then
         -- Track and apply cumulative bonuses
-        attacker._visionBonus = (attacker._visionBonus or 0) + PUDGE_KILL_VISION_BONUS -- +200 vision per kill
-        attacker._movespeedBonus = (attacker._movespeedBonus or 0) + PUDGE_KILL_MOVE_SPEED_BONUS -- +25 MS per kill
+        attacker._visionBonus = (attacker._visionBonus or 0) + PUDGE_KILL_VISION_BONUS 
+        attacker._movespeedBonus = (attacker._movespeedBonus or 0) + PUDGE_KILL_MOVE_SPEED_BONUS 
 
         local baseDayVision = 1800
         local baseNightVision = 800
@@ -307,11 +236,12 @@ end, nil)
 ---------------------------------------------------------
 function HideAndHeap:StartItemSpawner()
     -- Run immediately, then every 120 seconds
-    Timers:CreateTimer(0, function()
+    self:SpawnBooks()
+    Timers:CreateTimer(ITEM_SPAWN_TIME, function()
         self:SpawnBooks()
         self:SpawnRandomItems()
         print("[HideAndHeap] New items have spawned!")
-        return 120.0 -- repeat every 120 seconds
+        return ITEM_SPAWN_TIME -- repeat every ITEM_SPAWN_TIME --> look to settings for value
     end)
 end
 
@@ -341,10 +271,10 @@ function HideAndHeap:SpawnRandomItems()
     -- List of possible items to spawn
     local itemPool = {
         "item_black_king_bar",
-        "item_bloodthorn",
-        "item_butterfly",
+        "item_blink",
+        "item_aether_lens",
         "item_cyclone",
-        "item_diffusal_blade",
+        "item_power_treads",
         "item_echo_sabre",
         "item_ethereal_blade",
         "item_force_staff",
@@ -353,17 +283,17 @@ function HideAndHeap:SpawnRandomItems()
         "item_glimmer_cape",
         "item_heart",
         "item_helm_of_the_dominator",
-        "item_invis_sword",
+        "item_cheese",
         "item_lotus_orb",
         "item_manta",
         "item_meteor_hammer",
-        "item_monkey_king_bar",
-        "item_nullifier",
+        "item_aegis",
+        "item_boots_of_bearing",
         "item_orchid",
         "item_pipe",
         "item_refresher",
         "item_sheepstick",
-        "item_silver_edge",
+        "item_smoke_of_deceit",
         "item_solar_crest",
         "item_sphere",
         "item_travel_boots_2",
@@ -375,7 +305,10 @@ function HideAndHeap:SpawnRandomItems()
         "item_shivas_guard",
         "item_iron_branch",
         "item_blood_grenade",
-        "item_ultimate_scepter"
+        "item_ultimate_scepter",
+        "item_overwhelming_blink",
+        "item_swift_blink",
+        "item_arcane_blink"
     }
 
     -- Define spawn locations

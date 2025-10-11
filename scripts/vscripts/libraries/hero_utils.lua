@@ -42,10 +42,10 @@ function InitializeHero(hero)
         if playerID == nil or playerID < 0 then
             SetCMAbilities(hero)
         else
-            hero:SetAbsOrigin(GenerateRandomUnitLocation(CM_STARTING_DISTANCE_FROM_CENTER))
+            --hero:SetAbsOrigin(GenerateRandomUnitLocation(CM_STARTING_DISTANCE_FROM_CENTER))
             PlayerResource:SetGold(playerID, CM_STARTING_GOLD, false)
         end
-        GiveItemSafe(hero, "item_boots_of_bearing")
+        GiveItemSafe(hero, "item_tranquil_boots")
         GiveItemSafe(hero, "item_ward_observer")
         GiveItemSafe(hero, "item_ward_sentry")
         GiveItemSafe(hero, "item_wind_lace")
@@ -53,7 +53,6 @@ function InitializeHero(hero)
         GiveItemSafe(hero, "item_quelling_blade")
         pcall(function() GiveItemSafe(hero, "item_pogo_stick") end)
         GiveItemSafe(hero, "item_aghanims_shard")
-        GiveItemSafe(hero, "item_ultimate_scepter_2")
     elseif team == DOTA_TEAM_BADGUYS then -- Pudge Levels, Gold, & Items
         LevelHeroTo(hero, PUDGE_STARTING_LEVEL)
         if playerID == nil or playerID < 0 then
@@ -61,18 +60,16 @@ function InitializeHero(hero)
         else
             PlayerResource:SetGold(playerID, PUDGE_STARTING_GOLD, false)
         end
-		GiveItemSafe(hero, "item_rod_of_atos")
 		GiveItemSafe(hero, "item_aether_lens")
         GiveItemSafe(hero, "item_octarine_core")
         GiveItemSafe(hero, "item_ward_observer")
         GiveItemSafe(hero, "item_ward_observer")
         GiveItemSafe(hero, "item_ward_sentry")
-		GiveItemSafe(hero, "item_travel_boots")
-        pcall(function() GiveItemSafe(hero, "item_blood_grenade") end)
+		GiveItemSafe(hero, "item_boots")
+        pcall(function() GiveItemSafe(hero, "item_smoke_of_deceit") end)
         pcall(function() GiveItemSafe(hero, "item_blood_grenade") end)
         pcall(function() GiveItemSafe(hero, "item_spider_legs") end)
         GiveItemSafe(hero, "item_aghanims_shard")
-        GiveItemSafe(hero, "item_ultimate_scepter_2")
     end
 end
 
