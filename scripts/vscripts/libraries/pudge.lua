@@ -14,6 +14,8 @@ if pudge_thinker == nil then
     pudge_thinker = class({})
 end
 
+-- Percent pudge should start toggling rot
+local PUDGE_ROT_TOGGLE_PERCENT = 40
 
 function ApplyPudgeThinker(pudge_entity)
    pudge_entity:AddNewModifier(pudge_entity, nil, "pudge_thinker", {})
@@ -48,7 +50,9 @@ end
 -- end
 
 function pudge_thinker:OnIntervalThink()
-    self:pudge_think(self:GetParent())
+    if IsServer() then
+        self:pudge_think(self:GetParent())
+    end
 end
 
 local function toggleRot(pudge_entity, target)
@@ -68,8 +72,7 @@ local function toggleRot(pudge_entity, target)
             target_close = pudge_entity:GetRangeToUnit(target) <= range
         end
     end
-    if target_close and ability:GetToggleState() and GetHealthPercentage(pudge_entity) > 15 then
-        print("target is close rot is ", ability:GetToggleState())
+    if target_close and ability:GetToggleState() and GetHealthPercentage(pudge_entity) > PUDGE_ROT_TOGGLE_PERCENT then
         return
     end
     if target_close and not ability:GetToggleState() then
@@ -82,7 +85,7 @@ local function toggleRot(pudge_entity, target)
     If below 40% toggle off, it will be toggled on if someone is close, leading to 
     a toggle on and off feature so the npc doesn't just burn its health down. 
     ]]-- 
-    if ability:GetToggleState() and GetHealthPercentage(pudge_entity) < 40 then
+    if ability:GetToggleState() and GetHealthPercentage(pudge_entity) < PUDGE_ROT_TOGGLE_PERCENT then
         DebugPrint("below 40% turn off rot")
         pudge_entity:CastAbilityToggle(ability, pudge_entity:GetEntityIndex())
         return
@@ -133,9 +136,13 @@ end
 
 
 -- iirc the 2 zeros are talent related 
+-- local PUDGE_ABILITY_INDEX_HOOK <const> = 0
+-- local PUDGE_ABILITY_INDEX_ROT <const> = 1
+-- local PUDGE_ABILITY_INDEX_FLESH_HEAP <const> = 2
+-- local PUDGE_ABILITY_INDEX_DISMEMBER <const> = 5
 PUDGE_ABILITIES = {4, 4, 4, 0, 0, 3}
 function SetPudgeAbilities(hero)
-    for index, level in ipairs(PUDGE_ABILITIES) do
+    for index, level in pairs(PUDGE_ABILITIES) do
         local ability = hero:GetAbilityByIndex(index-1)
         DebugPrint("ability ", ability:GetName())
         for _ = 0, level-1 do

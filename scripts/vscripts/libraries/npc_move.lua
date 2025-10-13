@@ -105,21 +105,16 @@ function MoveToNewRandomLocation(entity)
     DebugPrint("Y change", y_random_distance_change)
     local destination = entity.current_position:__add(Vector(x_random_distance_change, 0, 0))
     entity.next_position = destination:__add(Vector(0, y_random_distance_change, 0))
-    entity:MoveToPosition(entity.next_position)
+    if Pathable(entity.current_position, entity.next_position) then
+        entity:MoveToPosition(entity.next_position)
+    end
 end
 
 function GenerateRandomUnitLocation(away_from_center)
     local coins = FlipCoin(2)
-    local sd = away_from_center / 6
+    local sd = away_from_center / SPREAD_CONTROL_FACTOR
     x_loc= normalRandom(away_from_center, sd, coins[1])
     y_loc = normalRandom(away_from_center, sd, coins[2])
-    local try = true
-    while try do
-        local loc_vector = Vector(x_loc, y_loc, 128)
-        if GridNav:CanFindPath(MAP_CENTER, loc_vector) then
-            try = false
-        end
-    end
     return Vector(x_loc, y_loc, 128)
 end
 

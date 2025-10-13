@@ -29,9 +29,8 @@ GAME_ROUND_DURATION = 300 -- 5 minute long round.
 ITEM_SPAWN_TIME = 120 -- new items will spawn every 2 minutes
 
 ROUND_TIME = 300 -- seconds
-AUTO_FILL_TEAMS = true -- they are currently too buggy to push an udpate.
+AUTO_FILL_TEAMS = false
 
 
 -- DEV MODE
-DEV_MODE_CM_VISION = 2000
-
+DEV_MODE_CM_VISION = 4000
