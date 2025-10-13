@@ -1,7 +1,3 @@
-if HideAndHeap == nil then
-    HideAndHeap = class({})
-end
-
 HideAndHeap.ROUND_DURATION = GAME_ROUND_DURATION --> LOOK TO SETTINGS FOR VALUE
 
 function HideAndHeap:StartRound() -- START ROUND FUNCTION
