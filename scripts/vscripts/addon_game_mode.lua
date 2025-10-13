@@ -133,7 +133,7 @@ function HideAndHeap:OnGameStateChange()
     end
 
     -- Step 1.5 -- TIMED MESSAGES
-    if state== DOTA_GAMERULES_STATE_PRE_GAME then
+    if state == DOTA_GAMERULES_STATE_PRE_GAME then
         local duration = HIDE_DURATION
         GameRules:SendCustomMessage("Crystal Maidens, run and hide now!", 0, 0)
                 -- Pudge countdown message
@@ -158,20 +158,6 @@ function HideAndHeap:OnGameStateChange()
             Timers:CreateTimer(roundTime - i, function()
                 GameRules:SendCustomMessage("The round has " .. math.floor(i / 60) .. " minutes left!", 0, 0)
             end)
-        end
-    end
-end
-
----------------------------------------------------------
--- LOCK DIRE DURING PREGAME (HIDE PHASE)
----------------------------------------------------------
-function HideAndHeap:LockDireDuringPregame()
-    if not IsServer() then return end
-    print("Locking Dire players for " .. HIDE_DURATION .. " seconds")
-
-    for _, hero in pairs(HeroList:GetAllHeroes()) do
-        if hero:IsRealHero() and hero:GetTeamNumber() == DOTA_TEAM_BADGUYS then
-            hero:AddNewModifier(hero, nil, "modifier_stunned", { duration = HIDE_DURATION })
         end
     end
 end

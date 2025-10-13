@@ -42,7 +42,7 @@ function InitializeHero(hero)
         if playerID == nil or playerID < 0 then
             SetCMAbilities(hero)
         else
-            --hero:SetAbsOrigin(GenerateRandomUnitLocation(CM_STARTING_DISTANCE_FROM_CENTER))
+            hero:SetAbsOrigin(GenerateRandomUnitLocation(CM_STARTING_DISTANCE_FROM_CENTER))
             PlayerResource:SetGold(playerID, CM_STARTING_GOLD, false)
         end
         GiveItemSafe(hero, "item_tranquil_boots")
@@ -70,6 +70,7 @@ function InitializeHero(hero)
         pcall(function() GiveItemSafe(hero, "item_blood_grenade") end)
         pcall(function() GiveItemSafe(hero, "item_spider_legs") end)
         GiveItemSafe(hero, "item_aghanims_shard")
+        hero:AddNewModifier(hero, nil, "modifier_stunned", { duration = HIDE_DURATION })
     end
 end
 
