@@ -1,6 +1,7 @@
-HideAndHeap.ROUND_DURATION = GAME_ROUND_DURATION --> LOOK TO SETTINGS FOR VALUE
-
 function HideAndHeap:StartRound() -- START ROUND FUNCTION
+    if HideAndHeap.ROUND_DURATION ~= GAME_ROUND_DURATION then  --> LOOK TO SETTINGS FOR VALUE
+       HideAndHeap.ROUND_DURATION = GAME_ROUND_DURATION
+    end
     print("[HideAndHeap] Preparing to start round...")
 
     -- Wait until the game actually starts

@@ -59,7 +59,9 @@ function InitializeHero(hero)
         if playerID == nil or playerID < 0 then
             SetPudgeAbilities(hero)
         else
+            hero:SetAbsOrigin(MAP_CENTER)
             PlayerResource:SetGold(playerID, PUDGE_STARTING_GOLD, false)
+            -- PlayerResource:CenterCameraOnUnit(playerID, hero)
         end
 		GiveItemSafe(hero, "item_aether_lens")
         GiveItemSafe(hero, "item_octarine_core")
@@ -91,6 +93,6 @@ function GetHealthPercentage(hero)
     local max_health = hero:GetMaxHealth()
     local current_health = hero:GetHealth()
     current_health = current_health / max_health
-    print("health percentage ", current_health*100)
+    -- print("health percentage ", current_health*100)
     return current_health *100
 end
