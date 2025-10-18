@@ -1,4 +1,4 @@
-MAP_CENTER = Vector(0,0,0)
+MAP_CENTER = Vector(75,75, 500)
 math.randomseed(GameRules:GetGameTime())
 
 function FlipCoin(times)
@@ -9,7 +9,7 @@ function FlipCoin(times)
             table.insert(tosses,-1)
         else
             table.insert(tosses,1)
-        end 
+        end
     end
     for k,v in pairs(tosses) do
         DebugPrint("k ", k, "v", v)
@@ -40,53 +40,21 @@ function Pathable(from, to)
     return GridNav:CanFindPath(from, to)
 end
 
-function RandomCharMovementWithAggro(npc_entity)
-    if npc_entity.__movement_init == nil then
-        npc_entity.__movement_init = true
-    else return
+function HandleMovement(entity)
+    -- Check if we are stuck
+    local new_location  = false
+    if (entity.last_position ~= nil and entity.current_position == entity.last_position) or (entity.current_position == entity.next_position) then
+       new_location = true
     end
-    Timers:CreateTimer(function()
-        npc_entity.current_position = npc_entity:GetOrigin()
-        npc_entity.target = npc_entity:GetAggroTarget()
-        local target = npc_entity:GetAggroTarget()
-        if target ~= nil and target:IsAlive() then
-            npc_entity.isAggrod = true
-        else
-            npc_entity.isAggrod = false
-        end
-        if npc_entity.isAggrod then
-            AttackAi(npc_entity, {target})
-            return 1
-        end
-        local targets = FindEnemyTargets(npc_entity, 2000, nil)
-        if AttackAi(npc_entity, targets) then
-            return 1
-        end
-        if npc_entity.next_position ~= nil and npc_entity.current_position ~= npc_entity.next_position and Pathable(npc_entity.current_position, npc_entity.next_position) then
-            npc_entity:MoveToPosition(npc_entity.next_position)
-            return 1
-        end
-        if npc_entity:GetName() == "npc_dota_hero_pudge" then
-            ToggleRot(npc_entity, {})
-        end
-        local x_random_distance_change
-        local y_random_distance_change
-        local pos_neg = FlipCoin(2)
-        for i, flip in pairs(pos_neg) do
-            if i == 1 then
-                x_random_distance_change = normalRandom(1000, 200, flip)
-            else
-                y_random_distance_change = normalRandom(1000, 200, flip)
-            end
-        end
-        DebugPrint("Current position ", npc_entity.current_position)
-        DebugPrint("X change", x_random_distance_change)
-        DebugPrint("Y change", y_random_distance_change)
-        local destination = npc_entity.current_position:__add(Vector(x_random_distance_change, 0, 0))
-        npc_entity.next_position = destination:__add(Vector(0, y_random_distance_change, 0))
-        npc_entity:MoveToPosition(npc_entity.next_position)
-        return 1
-    end)
+    if new_location then
+       MoveToNewRandomLocation(entity)
+    end
+    --     -- If we are already on our way somewhere, keep going because we haven't been aggroed at this point 
+    -- if entity.next_position ~= nil and entity.current_position ~= entity.next_position and Pathable(entity.current_position, entity.next_position) then
+    --     entity:MoveToPosition(entity.next_position)
+    -- else
+    -- end
+    entity.last_position = entity:GetOrigin()
 end
 
 function MoveToNewRandomLocation(entity)
@@ -103,9 +71,13 @@ function MoveToNewRandomLocation(entity)
     DebugPrint("Current position ", entity.current_position)
     DebugPrint("X change", x_random_distance_change)
     DebugPrint("Y change", y_random_distance_change)
+    print("Current position ", entity.current_position)
     local destination = entity.current_position:__add(Vector(x_random_distance_change, 0, 0))
     entity.next_position = destination:__add(Vector(0, y_random_distance_change, 0))
-    if Pathable(entity.current_position, entity.next_position) then
+    if Pathable(entity.current_position, entity.next_position) and not entity.is_stuck then
+        print("Current position ", entity.current_position)
+        print("Moving to position ", entity.current_position)
+        print("pathable", Pathable(entity.current_position, entity.next_position))
         entity:MoveToPosition(entity.next_position)
     end
 end
@@ -147,7 +119,7 @@ end
 AttackAi - generally picks the closest target unless the entity is already aggroed to a unit
 hero - CDOTA_BaseNPC
 targets - table of target CDOTA_BaseNPC
-aggression - handle attacks for the hero
+aggression - function that takes the NPC and its targets as arguments and handles attacks for the hero
 ]]
 function AttackAi(hero, targets, aggression)
     local closest_distance = nil

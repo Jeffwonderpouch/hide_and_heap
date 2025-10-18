@@ -124,16 +124,18 @@ function pudge_thinker:pudge_think(pudge_entity)
     if AttackAi(pudge_entity, targets, handlePudgeAgression) then
         return 1
     end
-    -- If we are already on our way somewhere, keep going because we haven't been aggroed at this point 
-    if pudge_entity.next_position ~= nil and pudge_entity.current_position ~= pudge_entity.next_position and Pathable(pudge_entity.current_position, pudge_entity.next_position) then
-        pudge_entity:MoveToPosition(pudge_entity.next_position)
-        return 1
-    end
     toggleRot(pudge_entity, {})
-    MoveToNewRandomLocation(pudge_entity)
+    HandleMovement(pudge_entity)
     return 1
 end
 
+function pudge_thinker:OnAttacked(event)
+    local pudge_entity = self:GetParent()
+    if pudge_entity.isAggrod() or pudge_entity:GetAggroTarget() ~= nil then
+        return
+    end
+    pudge_entity:SetAggroTarget(event.attacker)
+end
 
 -- iirc the 2 zeros are talent related 
 -- local PUDGE_ABILITY_INDEX_HOOK <const> = 0

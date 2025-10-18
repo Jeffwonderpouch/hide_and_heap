@@ -89,7 +89,7 @@ function HideAndHeap:InitGameMode()
 end
 
 ----------------------------------------------------- 
--- OnGameStateChange -> Fill bots + swap heroes
+-- OnGameStateChange -> Fill bots + pick heroes
 -----------------------------------------------------
 function HideAndHeap:OnGameStateChange()
     if not IsServer() then return end
@@ -150,8 +150,8 @@ function HideAndHeap:OnGameStateChange()
 
     -- Step 2: Once the game actually begins, start the round
     if state == DOTA_GAMERULES_STATE_GAME_IN_PROGRESS then
-        HideAndHeap:StartItemSpawner() -- startup the item spawner script
         self:StartRound()
+        self:StartItemSpawner() -- startup the item spawner script
         local roundTime = ROUND_TIME
         -- Minute countdown message
         for i = roundTime, 1, -60 do

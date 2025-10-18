@@ -45,10 +45,11 @@ function InitializeHero(hero)
             hero:SetAbsOrigin(GenerateRandomUnitLocation(CM_STARTING_DISTANCE_FROM_CENTER))
             PlayerResource:SetGold(playerID, CM_STARTING_GOLD, false)
         end
-        GiveItemSafe(hero, "item_tranquil_boots")
+        GiveItemSafe(hero, "item_arcane_boots")
         GiveItemSafe(hero, "item_ward_observer")
         GiveItemSafe(hero, "item_ward_sentry")
         GiveItemSafe(hero, "item_wind_lace")
+        GiveItemSafe(hero, "item_magic_stick")
         GiveItemSafe(hero, "item_hurricane_pike")
         GiveItemSafe(hero, "item_quelling_blade")
         pcall(function() GiveItemSafe(hero, "item_pogo_stick") end)
@@ -58,19 +59,22 @@ function InitializeHero(hero)
         if playerID == nil or playerID < 0 then
             SetPudgeAbilities(hero)
         else
+            hero:SetAbsOrigin(MAP_CENTER)
             PlayerResource:SetGold(playerID, PUDGE_STARTING_GOLD, false)
+            -- PlayerResource:CenterCameraOnUnit(playerID, hero)
         end
 		GiveItemSafe(hero, "item_aether_lens")
         GiveItemSafe(hero, "item_octarine_core")
         GiveItemSafe(hero, "item_ward_observer")
         GiveItemSafe(hero, "item_ward_observer")
         GiveItemSafe(hero, "item_ward_sentry")
+        GiveItemSafe(hero, "item_magic_wand")
 		GiveItemSafe(hero, "item_boots")
         pcall(function() GiveItemSafe(hero, "item_smoke_of_deceit") end)
         pcall(function() GiveItemSafe(hero, "item_blood_grenade") end)
         pcall(function() GiveItemSafe(hero, "item_spider_legs") end)
         GiveItemSafe(hero, "item_aghanims_shard")
-        hero:AddNewModifier(hero, nil, "modifier_stunned", { duration = HIDE_DURATION })
+        hero:AddNewModifier(hero, nil, "modifier_stunned", { duration = PUDGE_INIT_STUN_DURATION })
     end
 end
 
@@ -89,6 +93,6 @@ function GetHealthPercentage(hero)
     local max_health = hero:GetMaxHealth()
     local current_health = hero:GetHealth()
     current_health = current_health / max_health
-    print("health percentage ", current_health*100)
+    -- print("health percentage ", current_health*100)
     return current_health *100
 end

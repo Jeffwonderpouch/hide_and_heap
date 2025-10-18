@@ -54,12 +54,7 @@ function cm_thinker:cm_think(cm_entity)
     if AttackAi(cm_entity, targets, handleCMAgression) then
         return 1
     end
-    -- If we are already on our way somewhere, keep going because we haven't been aggroed at this point 
-    if cm_entity.next_position ~= nil and cm_entity.current_position ~= cm_entity.next_position and Pathable(cm_entity.current_position, cm_entity.next_position) then
-        cm_entity:MoveToPosition(cm_entity.next_position)
-        return 1
-    end
-    MoveToNewRandomLocation(cm_entity)
+    HandleMovement(cm_entity)
     return 1
 end
 
