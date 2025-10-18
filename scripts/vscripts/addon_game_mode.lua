@@ -224,6 +224,7 @@ function HideAndHeap:StartItemSpawner()
         self:SpawnBooks()
         self:SpawnRandomItems()
         print("[HideAndHeap] New items have spawned!")
+        GameRules:SendCustomMessage("New items have spawned at your towers", 0, 0)
         return ITEM_SPAWN_TIME -- repeat every ITEM_SPAWN_TIME --> look to settings for value
     end)
 end
