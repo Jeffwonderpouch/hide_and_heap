@@ -10,7 +10,6 @@ function HideAndHeap:StartRound() -- START ROUND FUNCTION
         -- Only start once the game is actually in progress
         if state == DOTA_GAMERULES_STATE_GAME_IN_PROGRESS then
             print("[HideAndHeap] Round started (using game clock)!")
-            HideAndHeap:StartItemSpawner() -- startup the item spawner script
             ---------------------------------------------------------- 
             -- Delay activating the round logic until after hide phase
             ----------------------------------------------------------
@@ -30,7 +29,7 @@ function HideAndHeap:StartRound() -- START ROUND FUNCTION
                     end
 
                     -- Time up?
-                    if gameTime >= self.ROUND_DURATION then
+                    if gameTime >= GAME_ROUND_DURATION then
                         print("[HideAndHeap] Times up! Checking win...")
                         self:EndRound("time_up")
                         return nil
@@ -96,10 +95,10 @@ function HideAndHeap:EndRound(result) -- END OF ROUND FUNCTION
     GameRules:SendCustomMessage(victoryText, 0, 0)
 
     -- Delay slightly so message prints before end
-    --Timers:CreateTimer(2.0, function()
+    Timers:CreateTimer(1.0, function()
         GameRules:SetSafeToLeave(true)
         GameRules:SetGameWinner(winningTeam)
         GameRules:SetCustomVictoryMessage(victoryText)
         GameRules:SetCustomVictoryMessageDuration(10)
-    --end)
+    end)
 end
